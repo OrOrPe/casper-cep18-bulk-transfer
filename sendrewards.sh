@@ -10,7 +10,7 @@ TRANSFER_ID=1
 while IFS="," read address motes ; do
     echo Transfer $TRANSFER_ID - $address is getting $motes motes
 
-    set -x #echo on
+    set -v #echo on
     sudo -u casper casper-client transfer \
         --chain-name "$CHAINSPEC" \
         --node-address "$NODE_ADDRESS" \
@@ -19,7 +19,7 @@ while IFS="," read address motes ; do
         -a $motes \
         -t "$address" \
         -p 10000
-    set +x
+    set +v
 
     ((TRANSFER_ID++))
 
