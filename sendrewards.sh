@@ -2,6 +2,8 @@
 
 FILE="./sampledata.csv"
 PRIVATE_KEY="/etc/casper/validator_keys/secret_key.pem"
+CHAINSPEC="casper-test"
+NODE_ADDRESS="http://127.0.0.1:7777"
 
 TRANSFER_ID=1
 
@@ -10,8 +12,8 @@ while IFS="," read address motes ; do
 
     set -x #echo on
     sudo -u casper casper-client transfer \
-        --chain-name "casper-test" \
-        --node-address "http://127.0.0.1:7777" \
+        --chain-name "$CHAINSPEC" \
+        --node-address "$NODE_ADDRESS" \
         --secret-key $PRIVATE_KEY \
         --transfer-id "$TRANSFER_ID" \
         -a $motes \
