@@ -13,8 +13,8 @@ print_usage () {
   echo "  sendrewards.sh --file=~/rewards.csv --keys-path=~/casper-keys"
   echo
   echo "DEPENDENCIES:"
-  echo "  casper-client    To make RPC requests to the network"
-  echo "  jq               To parse RPC responses"
+  echo "  casper-client   To make RPC requests to the network"
+  echo "  jq              To parse RPC responses"
   echo
   echo "DISCLAIMER:"
   echo "Provided as is and with no warranties, or guarantees to be bug-free."
