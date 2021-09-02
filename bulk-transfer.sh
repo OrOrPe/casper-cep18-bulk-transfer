@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_usage () {
-  echo "Sends bulk transfers on the Casper blockchain network reading the recipients and amounts from a CSV file formatted as ```recipient_public_key,amount_in_motes```"
+  echo "Sends bulk transfers on the Casper blockchain network reading the recipients and amounts from a CSV file formatted as ``recipient_public_key,amount_in_motes``"
   echo
   echo "USAGE:"
   echo "  bulk-transfer.sh [ARGUMENTS]"
