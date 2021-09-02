@@ -1,14 +1,32 @@
-# Casper rewards sender
+# Casper Bulk Transfer
 
-This script sends bulk transfers on the Casper blockchain network reading the recipients and amounts from a CSV file in the format ```recipient_public_key,amount_in_motes```. 
+This script creates multiple transfers on the Casper blockchain network reading the recipients and amounts from a CSV file formatted as ```recipient_public_key,amount_in_motes```. 
 
 ## Usage
 
+The script was tested on Ubuntu 20.04.2 LTS.
+
+1. Download the script:
 ```
-./sendrewards.sh --file=~/rewards.csv --keys-path=~/my-casper-keys
+wget https://raw.githubusercontent.com/mssteuer/sendrewards/master/bulk-transfer.sh
 ```
 
-Triple check everything, as there is no failsafe once you start sending.
+2. Make it executable
+
+```
+sudo chmod +x bulk-transfer.sh
+```
+
+3. Prepare the input CSV file in the ```recipient_public_key,amount_in_motes``` format
+
+
+4. Execute the script saving the output to the ```bulk-transfer-results.csv```
+
+```
+./bulk-transfer.sh --keys-path=~/my-casper-keys --in=input.csv --out=bulk-transfer-results.csv
+```
+
+ > **Note:** Triple check everything, as there is no failsafe once you start sending.
 
 ## Disclaimer
 

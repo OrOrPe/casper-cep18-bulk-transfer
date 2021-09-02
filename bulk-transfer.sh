@@ -1,16 +1,19 @@
 #!/bin/bash
 
 print_usage () {
+  echo "Sends bulk transfers on the Casper blockchain network reading the recipients and amounts from a CSV file in the format ```recipient_public_key,amount_in_motes```"
+  echo
   echo "USAGE:"
-  echo "  sendrewards.sh [ARGUMENTS]"
+  echo "  bulk-transfer.sh [ARGUMENTS]"
   echo
   echo "ARGUMENTS:"
-  echo "  --node-address  Casper node to run RPC requests against (default: 127.0.0.1)"
-  echo "  --file          CSV file in format <recipient_public_key>,<rewards_in_motes>"
+  echo "  --node-address  Casper node to run RPC requests against (optional, default is 127.0.0.1)"
   echo "  --keys-path     Path to the directory with Casper keys of the sender account"
+  echo "  --in            Input CSV file in the <recipient_public_key>,<amount_in_motes> format"
+  echo "  --out           Output CSV file (optional)"
   echo
   echo "EXAMPLE:"
-  echo "  sendrewards.sh --file=~/rewards.csv --keys-path=~/casper-keys"
+  echo "  bulk-transfer.sh --keys-path=~/casper-keys" --in=~/recipients.csv --out=~/results.csv
   echo
   echo "DEPENDENCIES:"
   echo "  casper-client   To make RPC requests to the network"
@@ -36,11 +39,14 @@ while [ $# -gt 0 ]; do
     --node-address=*)
       NODE_ADDRESS="${1#*=}"
       ;;
-    --file=*)
-      FILE="${1#*=}"
-      ;;
     --keys-path=*)
       KEYS_PATH="${1#*=}"
+      ;;
+    --in=*)
+      IN="${1#*=}"
+      ;;
+    --out=*)
+      OUT="${1#*=}"
       ;;
     *)
       print_usage; exit 1
@@ -50,8 +56,10 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z ${NODE_ADDRESS+x} ]; then NODE_ADDRESS=127.0.0.1; fi
-if [ -z ${FILE+x} ]; then print_usage; exit 1; fi
 if [ -z ${KEYS_PATH+x} ]; then print_usage; exit 1; fi
+if [ -z ${IN+x} ]; then print_usage; exit 1; fi
+if [ -z ${OUT+x} ]; then OUT=/dev/null; fi
+
 
 CHAIN_NAME=$(curl -s http://$NODE_ADDRESS:8888/status | jq -r '.chainspec_name')
 
@@ -69,21 +77,24 @@ while IFS="," read PUBLIC_KEY MOTES ; do
   fi
 
   ((LINE++))
-done < $FILE
+done < $IN
 
 # Send rewards
+echo "public_key,motes,deploy_hash,transfer_id" > $OUT
+
 TRANSFER_ID=1
 while IFS="," read PUBLIC_KEY MOTES ; do
-    echo Transfer $TRANSFER_ID - $PUBLIC_KEY is getting $MOTES motes
+  DEPLOY_HASH=$(sudo -u casper casper-client transfer \
+    --chain-name "$CHAIN_NAME" \
+    --node-address http://$NODE_ADDRESS:7777 \
+    --secret-key "$KEYS_PATH/secret_key.pem" \
+    --transfer-id "$TRANSFER_ID" \
+    -a $MOTES \
+    -t "$PUBLIC_KEY" \
+    -p 10000 | jq -r '.result | .deploy_hash')
 
-    sudo -u casper casper-client transfer \
-        --chain-name "$CHAIN_NAME" \
-        --node-address http://$NODE_ADDRESS:7777 \
-        --secret-key "$KEYS_PATH/secret_key.pem" \
-        --transfer-id "$TRANSFER_ID" \
-        -a $MOTES \
-        -t "$PUBLIC_KEY" \
-        -p 10000
+  echo "Transferred $MOTES motes to $PUBLIC_KEY (deploy hash $DEPLOY_HASH, transfer id $TRANSFER_ID)"
+  echo "$PUBLIC_KEY,$MOTES,$DEPLOY_HASH,$TRANSFER_ID" >> $OUT
 
-    ((TRANSFER_ID++))
-done < $FILE
+  ((TRANSFER_ID++))
+done < $IN
