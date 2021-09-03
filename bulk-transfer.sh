@@ -89,7 +89,7 @@ while IFS="," read PUBLIC_KEY MOTES ; do
     --node-address http://$NODE_ADDRESS:7777 \
     --secret-key "$KEYS_PATH/secret_key.pem" \
     --transfer-id "$TRANSFER_ID" \
-    -a $MOTES \
+    -a "$MOTES" \
     -t "$PUBLIC_KEY" \
     -p 10000 | jq -r '.result | .deploy_hash')
 
