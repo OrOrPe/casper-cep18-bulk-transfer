@@ -8,7 +8,7 @@ The script was tested on Ubuntu 20.04.2 LTS.
 
 1. Download the script:
 ```
-wget https://raw.githubusercontent.com/mssteuer/sendrewards/master/bulk-transfer.sh
+wget https://raw.githubusercontent.com/mssteuer/casper-bulk-transfer/master/bulk-transfer.sh
 ```
 
 2. Make it executable
