@@ -1,19 +1,19 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 print_usage () {
-  echo "Sends bulk transfers on the Casper blockchain network reading the recipients and amounts from a CSV file formatted as ``recipient_public_key,amount_in_motes``"
+  echo "Sends bulk of CEP-18 transfers on the Casper blockchain network reading the recipients and amounts from a CSV file formatted as ``recipient_hash_key,amount_in_motes``"
   echo
   echo "USAGE:"
   echo "  bulk-transfer.sh [ARGUMENTS]"
   echo
   echo "ARGUMENTS:"
-  echo "  --node-address  Casper node to run RPC requests against (optional, default is 127.0.0.1)"
+  echo "  --env           Casper environment test/prod  (optional, default is test)"
   echo "  --keys-path     Path to the directory with Casper keys of the sender account"
-  echo "  --in            Input CSV file in the <recipient_public_key>,<amount_in_motes> format"
+  echo "  --in            Input CSV file in the <recipient_hash_key>,<amount_in_motes> format"
   echo "  --out           Output CSV file (optional)"
   echo
   echo "EXAMPLE:"
-  echo "  bulk-transfer.sh --keys-path=~/casper-keys" --in=~/recipients.csv --out=~/results.csv
+  echo "  ./bulk-transfer.sh --env=test --keys-path=../SRT/secret_key.pem --in=./sample-input.csv --out=./results.csv"
   echo
   echo "DEPENDENCIES:"
   echo "  casper-client   To make RPC requests to the network"
@@ -36,8 +36,11 @@ ensure_has_installed "jq"
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --node-address=*)
-      NODE_ADDRESS="${1#*=}"
+    #--node-address=*)
+    #  NODE_ADDRESS="${1#*=}"
+    #  ;;
+    --env=*)
+      CASPER_ENV="${1#*=}"
       ;;
     --keys-path=*)
       KEYS_PATH="${1#*=}"
@@ -55,24 +58,41 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-if [ -z ${NODE_ADDRESS+x} ]; then NODE_ADDRESS=127.0.0.1; fi
+# if [ -z ${NODE_ADDRESS+x} ]; then NODE_ADDRESS=https://rpc.testnet.casperlabs.io/; fi
+if [ -z ${CASPER_ENV+x} ]; then CASPER_ENV=test; fi
 if [ -z ${KEYS_PATH+x} ]; then print_usage; exit 1; fi
 if [ -z ${IN+x} ]; then print_usage; exit 1; fi
 if [ -z ${OUT+x} ]; then OUT=/dev/null; fi
 
-
-CHAIN_NAME=$(curl -s http://$NODE_ADDRESS:8888/status | jq -r '.chainspec_name')
+if [ $CASPER_ENV == "test" ]; then
+  # Test Astro
+  CEP18_CONTRACT_HASH=99390eee78a54fe001fe567b73f6eb9a332d9098235c21a3f6d5be36b81579fa
+  CHAIN_NAME="casper-test"
+  NODE_ADDRESS=https://rpc.testnet.casperlabs.io/
+elseif [ $CASPER_ENV == "prod" ];
+  # Mainnet
+  CEP18_CONTRACT_HASH=NotDeployedYet
+  CHAIN_NAME="casper-net-1"
+  NODE_ADDRESS=http://3.14.161.135:7777/
+  # Any of these could be used for mainnet
+  # 3.14.161.135
+  # 3.12.207.193
+  # 3.142.224.108
+else
+  echo "env can be test or prod only"; exit 1;
+fi
+# CHAIN_NAME=$(curl -s http://$NODE_ADDRESS:8888/status | jq -r '.chainspec_name')
 
 # Validate the input
 LINE=1
 while IFS="," read PUBLIC_KEY MOTES ; do
-  if (( ${#PUBLIC_KEY} != 66 )) && (( ${#PUBLIC_KEY} != 68 )); then
-    echo "Please check if you put a valid recipient public key on the line $LINE"
+  if (( ${#PUBLIC_KEY} != 64 )); then
+    echo "Please check if you put a valid recipient hash key(NOT public key) on the line $LINE"
     exit 2
   fi
 
-  if (( ${#MOTES} < 9 )); then
-    echo "Please check if you put a correct rewards amount on the line $LINE. It is not possible to send less than 2.5 CSPR."
+  if (( ${#MOTES} < 4 )); then
+    echo "Please check if you put a correct rewards amount on the line $LINE. It is not possible to send less than 1000 motes of BOIN."
     exit 2
   fi
 
@@ -84,14 +104,17 @@ echo "public_key,motes,deploy_hash,transfer_id" > $OUT
 
 TRANSFER_ID=1
 while IFS="," read PUBLIC_KEY MOTES ; do
-  DEPLOY_HASH=$(sudo -u casper casper-client transfer \
+
+  DEPLOY_HASH=$(casper-client put-deploy \
     --chain-name "$CHAIN_NAME" \
-    --node-address http://$NODE_ADDRESS:7777 \
-    --secret-key "$KEYS_PATH/secret_key.pem" \
-    --transfer-id "$TRANSFER_ID" \
-    -a "$MOTES" \
-    -t "$PUBLIC_KEY" \
-    -p 10000 | jq -r '.result | .deploy_hash')
+    --node-address "$NODE_ADDRESS" \
+    --secret-key "$KEYS_PATH" \
+    --session-hash "hash-$CEP18_CONTRACT_HASH" \
+    --session-entry-point "transfer" \
+    --session-arg "recipient:key='account-hash-$PUBLIC_KEY'" \
+    --session-arg "transfer-id:u256='$TRANSFER_ID'" \
+    --session-arg "amount:u256='$MOTES'" \
+    --payment-amount "5000000000" | jq -r '.result | .deploy_hash')
 
   echo "Transferred $MOTES motes to $PUBLIC_KEY (deploy hash $DEPLOY_HASH, transfer id $TRANSFER_ID)"
   echo "$PUBLIC_KEY,$MOTES,$DEPLOY_HASH,$TRANSFER_ID" >> $OUT

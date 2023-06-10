@@ -8,7 +8,7 @@ The script was tested on Ubuntu 20.04.2 LTS.
 
 1. Download the script:
 ```
-wget https://raw.githubusercontent.com/mssteuer/casper-bulk-transfer/master/bulk-transfer.sh
+wget https://raw.githubusercontent.com/OrOrPe/casper-cep18-bulk-transfer/blob/master/bulk-transfer.sh
 ```
 
 2. Make it executable
@@ -17,13 +17,21 @@ wget https://raw.githubusercontent.com/mssteuer/casper-bulk-transfer/master/bulk
 sudo chmod +x bulk-transfer.sh
 ```
 
-3. Prepare the input CSV file in the ```recipient_public_key,amount_in_motes``` format
+3. Prepare the input CSV file in the ```recipient_hash_key,amount_in_motes``` format
 
 
-4. Execute the script saving the output to the ```bulk-transfer-results.csv```
+4. If CSV done in windows use dos2unix on the input.csv
+```
+dos2unix sample-input.csv
+```
+
+5. In the bulk-transfer.sh script set your ```CEP18_CONTRACT_HASH``` for test and prod enviornments
+
+
+6. Execute the script saving the output to the ```results.csv```
 
 ```
-./bulk-transfer.sh --keys-path=~/my-casper-keys --in=input.csv --out=bulk-transfer-results.csv
+./bulk-transfer.sh --env=test --keys-path=../SRT/secret_key.pem --in=./sample-input.csv --out=./results.csv
 ```
 
  > **Note:** Triple check everything, as there is no failsafe once you start sending.
