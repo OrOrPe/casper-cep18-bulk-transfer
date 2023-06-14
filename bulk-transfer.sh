@@ -66,10 +66,10 @@ if [ -z ${OUT+x} ]; then OUT=/dev/null; fi
 
 if [ $CASPER_ENV == "test" ]; then
   # Test Astro
-  CEP18_CONTRACT_HASH=99390eee78a54fe001fe567b73f6eb9a332d9098235c21a3f6d5be36b81579fa
+  CEP18_CONTRACT_HASH=f71c3cb768825b0084ef78478ecbe0ea2d56f29e239ebc82ed0e16e7bb9b080e
   CHAIN_NAME="casper-test"
   NODE_ADDRESS=https://rpc.testnet.casperlabs.io/
-elseif [ $CASPER_ENV == "prod" ];
+elif [ $CASPER_ENV == "prod" ]; then
   # Mainnet
   CEP18_CONTRACT_HASH=NotDeployedYet
   CHAIN_NAME="casper-net-1"
@@ -91,8 +91,8 @@ while IFS="," read PUBLIC_KEY MOTES ; do
     exit 2
   fi
 
-  if (( ${#MOTES} < 4 )); then
-    echo "Please check if you put a correct rewards amount on the line $LINE. It is not possible to send less than 1000 motes of BOIN."
+  if (( ${#MOTES} < 9 )); then
+    echo "Please check if you put a correct rewards amount on the line $LINE. It is not possible to send less than 0.000000001 BOIN."
     exit 2
   fi
 
