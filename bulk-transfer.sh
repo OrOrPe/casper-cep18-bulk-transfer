@@ -73,11 +73,7 @@ elif [ "$CASPER_ENV" = "prod" ]; then
   # Mainnet
   CEP18_CONTRACT_HASH=30a39954dfe9baa2a8ea5a1f87fcb1b5deeb2bfa8feac07ce2ce022a5e080fdc
   CHAIN_NAME="casper"
-  NODE_ADDRESS=http://3.14.161.135:7777/
-  # Any of these could be used for mainnet
-  # 3.14.161.135
-  # 3.12.207.193
-  # 3.142.224.108
+  NODE_ADDRESS=http://18.235.240.32:7777/
 else
   echo "env can be test or prod only"; exit 1;
 fi
@@ -106,7 +102,7 @@ echo "public_key,motes,deploy_hash,transfer_id" > $OUT
 TRANSFER_ID=1
 while IFS="," read PUBLIC_KEY MOTES ; do
   if (($MOTES > 0 )) ; then
-    DEPLOY_HASH=$(casper-client put-deploy \
+    RESULT=$(casper-client put-deploy \
       --chain-name "$CHAIN_NAME" \
       --node-address "$NODE_ADDRESS" \
       --secret-key "$KEYS_PATH" \
@@ -115,13 +111,21 @@ while IFS="," read PUBLIC_KEY MOTES ; do
       --session-arg "recipient:key='account-hash-$PUBLIC_KEY'" \
       --session-arg "transfer-id:u256='$TRANSFER_ID'" \
       --session-arg "amount:u256='$MOTES'" \
-      --payment-amount "5000000000" | jq -r '.result | .deploy_hash')
+      --payment-amount "5000000000");
+    DEPLOY_HASH=$(echo "$RESULT" | jq -r '.result | .deploy_hash')
+    LOG_RESULT=$(echo "$RESULT" | jq -c '.')
   else
     DEPLOY_HASH="Zero Deal"
+    LOG_RESULT=""
   fi
 
-  echo "Transferred $MOTES motes to $PUBLIC_KEY (deploy hash $DEPLOY_HASH, transfer id $TRANSFER_ID)";
-  echo "$PUBLIC_KEY,$MOTES,$DEPLOY_HASH,$TRANSFER_ID" >> $OUT
+  if [ "$DEPLOY_HASH" = "null" ]; then
+    echo "ERROR on transfer $MOTES motes to $PUBLIC_KEY (deploy hash $DEPLOY_HASH, transfer id $TRANSFER_ID)";
+    echo "ERROR_LOG: $LOG_RESULT";
+  else
+    echo "Transferred $MOTES motes to $PUBLIC_KEY (deploy hash $DEPLOY_HASH, transfer id $TRANSFER_ID)";
+  fi
 
+  echo "$PUBLIC_KEY,$MOTES,$DEPLOY_HASH,$TRANSFER_ID,$LOG_RESULT" >> $OUT
   ((TRANSFER_ID++))
 done < $IN
