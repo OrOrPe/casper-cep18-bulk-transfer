@@ -66,12 +66,12 @@ if [ -z ${OUT+x} ]; then OUT=/dev/null; fi
 
 if [ "$CASPER_ENV" = "test" ]; then
   # Test Astro
-  CEP18_CONTRACT_HASH=f71c3cb768825b0084ef78478ecbe0ea2d56f29e239ebc82ed0e16e7bb9b080e
+  CEP18_CONTRACT_HASH=10fa175b1a648322d17e3370705bc27e2594697cfa2d45e347f230f331a1c51b
   CHAIN_NAME="casper-test"
   NODE_ADDRESS=https://rpc.testnet.casperlabs.io/
 elif [ "$CASPER_ENV" = "prod" ]; then
   # Mainnet
-  CEP18_CONTRACT_HASH=30a39954dfe9baa2a8ea5a1f87fcb1b5deeb2bfa8feac07ce2ce022a5e080fdc
+  CEP18_CONTRACT_HASH=e1d1f59fe4b79589b14fe9bd16f2e65b2c666aa2e8685b33c71128bcc86c61ec
   CHAIN_NAME="casper"
   NODE_ADDRESS=http://18.235.240.32:7777/
 else
