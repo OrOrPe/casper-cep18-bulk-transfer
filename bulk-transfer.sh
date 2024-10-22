@@ -66,7 +66,7 @@ if [ -z ${OUT+x} ]; then OUT=/dev/null; fi
 
 if [ "$CASPER_ENV" = "test" ]; then
   # Test Astro
-  CEP18_CONTRACT_HASH=10fa175b1a648322d17e3370705bc27e2594697cfa2d45e347f230f331a1c51b
+  CEP18_CONTRACT_HASH=49a58229b7776eb337834feccda0c840fb8e88705837f5aa7ab03d88bc07252b
   CHAIN_NAME="casper-test"
   NODE_ADDRESS=https://rpc.testnet.casperlabs.io/
 elif [ "$CASPER_ENV" = "prod" ]; then
