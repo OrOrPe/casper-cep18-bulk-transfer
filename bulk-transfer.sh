@@ -71,7 +71,7 @@ if [ "$CASPER_ENV" = "test" ]; then
   NODE_ADDRESS=https://rpc.testnet.casperlabs.io/
 elif [ "$CASPER_ENV" = "prod" ]; then
   # Mainnet
-  CEP18_CONTRACT_HASH=e1d1f59fe4b79589b14fe9bd16f2e65b2c666aa2e8685b33c71128bcc86c61ec
+  CEP18_CONTRACT_HASH=87314a3cbbf8092b402fcc04a5bd5010fed288ee2727b8d2c84f87ebe4868f4e
   CHAIN_NAME="casper"
   NODE_ADDRESS=http://18.235.240.32:7777/
 else
